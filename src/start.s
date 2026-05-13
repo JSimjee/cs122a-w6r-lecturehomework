@@ -17,11 +17,17 @@ reset_handler: // entry point of program
     BL main
     B .
 
-irq_handler:
-    sub lr, lr, #4
-    stmfd sp!, {r0-r12, lr} // stack ALL registers
-    bl IRQ_handler // call IRQ_hanler() in C
-    ldmfd sp!, {r0-r12, pc}^ // return
+irq_handler: // r4-r11 not restored. AND stack pointer won't point to correct location
+  sub lr, lr, #4
+  stmfd sp!, {r0-r12, lr}   // stack ALL registers
+  bl IRQ_handler            // call IRQ_handler() in C
+  ldmfd sp!, {r0-r3, r12, pc}^ // return. "^" means copy the saved SPSR (saved program status reg) to the CPSR (current program status reg), return to the previous mode
+
+@ irq_handler:
+@     sub lr, lr, #4
+@     stmfd sp!, {r0-r12, lr} // stack ALL registers
+@     bl IRQ_handler // call IRQ_hanler() in C
+@     ldmfd sp!, {r0-r12, pc}^ // return
 
 lock: // mask out IRQ interrupts
     MRS r0, cpsr
